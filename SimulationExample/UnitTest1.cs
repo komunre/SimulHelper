@@ -129,4 +129,87 @@ namespace SimulationExample
             ticker.End();
         }
     }
+
+    [TestClass]
+    public class Breathing
+    {
+        public class Lungs : SimulationSystem
+        {
+            public float Pressure;
+            public float MaxVolume;
+            public float Volume = 0.1554f;
+            public float BreathRate = 8f;
+            public float InhaleExhale;
+            public bool Inhaling = true;
+            public float Force = 0.0f;
+            public LinearGraphHelper LinearGraph;
+            private int _volume;
+            private int _inhale;
+            private int _force;
+
+            public Lungs(float heightMeters)
+            {
+                MaxVolume = 2.5f * heightMeters;
+                InhaleExhale = MaxVolume / BreathRate / 60;
+                LinearGraph = new LinearGraphHelper(1200, (int)MaxVolume);
+                _volume = LinearGraph.AddLine(true, new SKColor(0, 100, 100));
+                _inhale = LinearGraph.AddLine(true, new SKColor(0, 0, 255));
+                _force = LinearGraph.AddLine(true, new SKColor(255, 0, 0));
+            }
+
+            public override void Update(uint tick)
+            {
+                if (Inhaling)
+                {
+                    Volume += InhaleExhale * Force;
+                }
+                else
+                {
+                    Volume -= InhaleExhale * Force;
+                }
+
+                if (Volume >= MaxVolume && Inhaling)
+                {
+                    Inhaling = false;
+                    Force = 0;
+                }
+                if (Volume <= 0.7 && !Inhaling)
+                {
+                    Inhaling = true;
+                    Force = 0;
+                }
+
+                Force += 0.1f;
+
+                LinearGraph.TranslateLineH(_volume, Volume);
+                LinearGraph.TranslateLineH(_inhale, Inhaling ? MaxVolume - 10 : 0);
+                LinearGraph.TranslateLineH(_force, Force);
+            }
+
+            public override void Serialize(Utf8JsonWriter writer)
+            {
+                writer.WriteNumber("Volume", Volume);
+                writer.WriteBoolean("Inhaling", Inhaling);
+            }
+
+            public override void End()
+            {
+                LinearGraph.Save("breathe.png");
+            }
+        }
+        [TestMethod]
+        public void Breathe()
+        {
+            Ticker ticker = new Ticker("breathe.json");
+
+            ticker.RegisterSystem(new Lungs(170));
+            
+            while (ticker.Tick <= 1200)
+            {
+                ticker.Update();
+            }
+
+            ticker.End();
+        }
+    }
 }
