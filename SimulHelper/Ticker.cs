@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace SimulHelper
 {
@@ -8,9 +10,12 @@ namespace SimulHelper
         public uint Tick { get; protected set; }
         protected float Time = 0;
         protected List<SimulationSystem> SimSystems = new List<SimulationSystem>();
-        public Ticker()
+        protected Utf8JsonWriter JsonWriter;
+        public Ticker(string log)
         {
             Tick = 0;
+            JsonWriter = new Utf8JsonWriter(File.OpenWrite(log));
+            JsonWriter.WriteStartArray();
         }
 
         public void Update()
@@ -19,6 +24,9 @@ namespace SimulHelper
             foreach (var system in SimSystems)
             {
                 system.Update(Tick);
+                JsonWriter.WriteStartObject();
+                system.Serialize(JsonWriter);
+                JsonWriter.WriteEndObject();
             }
         }
 
@@ -28,7 +36,8 @@ namespace SimulHelper
             {
                 system.End();
             }
-
+            JsonWriter.WriteEndArray();
+            JsonWriter.Flush();
         }
 
         public void RegisterSystem(SimulationSystem system)

@@ -4,6 +4,8 @@ using SimulHelper.Math;
 using SkiaSharp;
 using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace SimulationExample
 {
@@ -14,6 +16,11 @@ namespace SimulationExample
         public override void End()
         {
             
+        }
+
+        public override void Serialize(Utf8JsonWriter writer)
+        {
+            writer.WriteNumber("temperature", Temperature);
         }
 
         public override void Update(uint tick)
@@ -49,6 +56,12 @@ namespace SimulationExample
         {
             LinearGraphHelper.Save("water_ice.png");
         }
+
+        public override void Serialize(Utf8JsonWriter writer)
+        {
+            writer.WriteNumber("IceMass", IceMass);
+            writer.WriteNumber("Water", _waterTotal);
+        }
     }
     [TestClass]
     public class UnitTest1
@@ -56,13 +69,59 @@ namespace SimulationExample
         [TestMethod]
         public void IceMelt()
         {
-            Ticker ticker = new Ticker();
+            Ticker ticker = new Ticker("ice.json");
             var tempSystem = new TemperatureSystem();
             ticker.RegisterSystem(tempSystem);
             var waterSystem = new WaterSystem() { TemperatureSystem = tempSystem };
             ticker.RegisterSystem(waterSystem);
 
             while (waterSystem.IceMass >= 0)
+            {
+                ticker.Update();
+            }
+
+            ticker.End();
+        }
+
+        public class RandomSystem : SimulationSystem
+        {
+            private List<int> _lines = new List<int>();
+            private LinearGraphHelper _lineGraph = new LinearGraphHelper(500, 500);
+            public RandomSystem()
+            {
+                var random = new Random();
+                for (int i = 0; i < 100; i++) {
+                    _lines.Add(_lineGraph.AddLine(true, new SKColor((byte)random.Next(255), (byte)random.Next(255), (byte)random.Next(255))));
+                }
+            }
+            public override void End()
+            {
+                _lineGraph.Save("lines.png");
+            }
+
+            public override void Serialize(Utf8JsonWriter writer)
+            {
+                return;
+            }
+
+            public override void Update(uint tick)
+            {
+                var random = new Random();
+                foreach (var line in _lines)
+                {
+                    _lineGraph.TranslateLineH(line, random.Next((int)_lineGraph.GraphBox[1].Y));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void RandomBig()
+        {
+            Ticker ticker = new Ticker("random.json");
+
+            ticker.RegisterSystem(new RandomSystem());
+            
+            while (ticker.Tick < 500)
             {
                 ticker.Update();
             }

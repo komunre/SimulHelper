@@ -24,7 +24,7 @@ namespace SimulHelper
             var line = new Line();
             if (inverted)
             {
-                line.Pos = new Vector2(0, Info.Height);
+                line.Pos = new Vector2(GraphBox[0].X + 1, GraphBox[0].Y);
                 line.Inverted = true;
             }
             if (paint != null)
@@ -55,7 +55,7 @@ namespace SimulHelper
             var newPos = new Vector2(line.Pos.X + 1, y);
             if (line.Inverted)
             {
-                Canvas.DrawLine(new SKPoint(line.Pos.X, Info.Height - line.Pos.Y), new SKPoint(newPos.X, Info.Height - newPos.Y), line.Paint);
+                Canvas.DrawLine(new SKPoint(line.Pos.X, GraphBox[1].Y - line.Pos.Y), new SKPoint(newPos.X, GraphBox[1].Y - newPos.Y), line.Paint);
             }
             else
             {
