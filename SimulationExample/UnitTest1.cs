@@ -212,4 +212,86 @@ namespace SimulationExample
             ticker.End();
         }
     }
+
+    [TestClass]
+    public class Physics
+    {
+        public class CarSystem : SimulationSystem
+        {
+            public float Force = 0f;
+            public float Mass = 1500f;
+            public float Acceleration = 0f;
+            public float Velocity = 0f;
+            public float AirResistance = 0f;
+            public float Friction = 0f;
+            public bool Vacuum = false;
+            public LinearGraphHelper LinearGraph = new LinearGraphHelper(2000, 800);
+            private int _velocity;
+            private int _acc;
+            private int _airRes;
+
+            public CarSystem(bool vacuum)
+            {
+                if (!vacuum)
+                {
+                    _velocity = LinearGraph.AddLine(true, SKColors.Black);
+                    _acc = LinearGraph.AddLine(true, SKColors.Green);
+                    _airRes = LinearGraph.AddLine(true, SKColors.Purple);
+                }
+                else
+                {
+                    _velocity = LinearGraph.AddLine(true, SKColors.Red);
+                    _acc = LinearGraph.AddLine(true, SKColors.Blue);
+                    _airRes = LinearGraph.AddLine(true, SKColors.Gray);
+                }
+                Vacuum = vacuum;
+            }
+            public override void End()
+            {
+                var vac = Vacuum ? "vacuum" : "standard";
+                LinearGraph.Save("car_" + vac + ".png");
+            }
+
+            public override void Serialize(Utf8JsonWriter writer)
+            {
+                writer.WriteNumber("Acceleration", Acceleration);
+                writer.WriteNumber("AirResistance", AirResistance);
+                writer.WriteNumber("Velocity", Velocity);
+                writer.WriteBoolean("Vacuum", Vacuum);
+            }
+
+            public override void Update(uint tick)
+            {
+                if (!Vacuum)
+                {
+                    Logger.Log(Velocity.ToString());
+                    AirResistance = 1f / 2f * 1.2f * (Velocity * Velocity) * 0.04f;
+                    Logger.Log(AirResistance.ToString());
+                }
+                Friction = 0.68f * Mass * 0.81f;
+                Force = 1560f - AirResistance - Friction;
+                Acceleration = Force / Mass;
+                Velocity += Acceleration;
+
+                LinearGraph.TranslateLineH(_velocity, Velocity);
+                LinearGraph.TranslateLineH(_acc, Acceleration);
+                LinearGraph.TranslateLineH(_airRes, AirResistance);
+            }
+        }
+        [TestMethod]
+        public void VacuumCar()
+        {
+            Ticker ticker = new Ticker("cars.json");
+
+            ticker.RegisterSystem(new CarSystem(false));
+            //ticker.RegisterSystem(new CarSystem(true));
+
+            while (ticker.Tick < 2000)
+            {
+                ticker.Update();
+            }
+
+            ticker.End();
+        }
+    }
 }
