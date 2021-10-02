@@ -23,6 +23,14 @@ namespace SimulHelper
             Tick++;
             foreach (var system in SimSystems)
             {
+                try
+                {
+                    DataRandom.Seed += system.DataRandomAdd();
+                }
+                catch (OverflowException)
+                {
+                    DataRandom.Seed = DataRandom.Next(-999999, 999999);
+                }
                 system.Update(Tick);
                 JsonWriter.WriteStartObject();
                 system.Serialize(JsonWriter);

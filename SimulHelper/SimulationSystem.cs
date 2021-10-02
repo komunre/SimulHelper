@@ -10,5 +10,9 @@ namespace SimulHelper
         public abstract void Update(uint tick);
         public abstract void End();
         public abstract void Serialize(Utf8JsonWriter writer);
+        public virtual int DataRandomAdd()
+        {
+            return 0;
+        }
     }
 }
