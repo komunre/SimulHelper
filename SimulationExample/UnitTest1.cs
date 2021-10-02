@@ -225,6 +225,10 @@ namespace SimulationExample
             public float AirResistance = 0f;
             public float Friction = 0f;
             public bool Vacuum = false;
+            public const float AirDensity = 1.2f;
+            public const float CarShape = 0.04f;
+            public const float RubberFriction = 0.68f;
+            public const float GravityAcceleration = 9.81f;
             public LinearGraphHelper LinearGraph = new LinearGraphHelper(2000, 800);
             private int _velocity;
             private int _acc;
@@ -265,13 +269,14 @@ namespace SimulationExample
                 if (!Vacuum)
                 {
                     Logger.Log(Velocity.ToString());
-                    AirResistance = 1f / 2f * 1.2f * (Velocity * Velocity) * 0.04f;
+                    AirResistance = 1f / 2f * AirDensity * (Velocity * Velocity) * CarShape;
                     Logger.Log(AirResistance.ToString());
                 }
-                Friction = 0.68f * Mass * 0.81f;
-                Force = 1560f - AirResistance - Friction;
+                Friction = RubberFriction * Mass * GravityAcceleration;
+                Force = 11000f - AirResistance - Friction;
                 Acceleration = Force / Mass;
                 Velocity += Acceleration;
+                Velocity = Math.Clamp(Velocity, 0, float.MaxValue);
 
                 LinearGraph.TranslateLineH(_velocity, Velocity);
                 LinearGraph.TranslateLineH(_acc, Acceleration);
