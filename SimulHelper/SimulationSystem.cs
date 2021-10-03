@@ -7,7 +7,7 @@ namespace SimulHelper
 {
     public abstract class SimulationSystem
     {
-        public abstract void Update(uint tick);
+        public abstract void Update(Ticker ticker);
         public abstract void End();
         public abstract void Serialize(Utf8JsonWriter writer);
         public virtual int DataRandomAdd()

@@ -10,6 +10,7 @@ namespace SimulHelper
         public uint Tick { get; protected set; }
         protected float Time = 0;
         protected List<SimulationSystem> SimSystems = new List<SimulationSystem>();
+        protected Dictionary<Type, SimulationSystem> SimSystemsDict = new Dictionary<Type, SimulationSystem>();
         protected Utf8JsonWriter JsonWriter;
         public Ticker(string log)
         {
@@ -18,6 +19,7 @@ namespace SimulHelper
             JsonWriter.WriteStartArray();
         }
 
+        [Obsolete("Use UpdateWithDeps instead")]
         public void Update()
         {
             Tick++;
@@ -31,7 +33,27 @@ namespace SimulHelper
                 {
                     DataRandom.Seed = DataRandom.Next(-999999, 999999);
                 }
-                system.Update(Tick);
+                system.Update(this);
+                JsonWriter.WriteStartObject();
+                system.Serialize(JsonWriter);
+                JsonWriter.WriteEndObject();
+            }
+        }
+
+        public void UpdateWithDeps()
+        {
+            Tick++;
+            foreach (var system in SimSystemsDict.Values)
+            {
+                try
+                {
+                    DataRandom.Seed += system.DataRandomAdd();
+                }
+                catch (OverflowException)
+                {
+                    DataRandom.Seed = DataRandom.Next(-999999, 999999);
+                }
+                system.Update(this);
                 JsonWriter.WriteStartObject();
                 system.Serialize(JsonWriter);
                 JsonWriter.WriteEndObject();
@@ -48,9 +70,24 @@ namespace SimulHelper
             JsonWriter.Flush();
         }
 
+        [Obsolete("Use RegisterSystemDependency instead")]
         public void RegisterSystem(SimulationSystem system)
         {
             SimSystems.Add(system);
+        }
+
+        public void RegisterSystemDependency<System>(System sys) where System : SimulationSystem
+        {
+            SimSystemsDict.Add(sys.GetType(), sys);
+        }
+
+        public System Resolve<System>() where System : SimulationSystem
+        {
+            if (SimSystemsDict.TryGetValue(typeof(System), out var sys))
+            {
+                return sys as System;
+            }
+            return null;
         }
     }
 }

@@ -6,6 +6,6 @@ namespace SimulHelper.Math
 {
     public class MathHelper
     {
-        
+        //public static float MulByItself(float num, )
     }
 }
