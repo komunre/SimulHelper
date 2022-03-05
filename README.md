@@ -17,3 +17,6 @@ When you develop some simulation, you may need some strong and big base. And so,
 SimulHelper simplifies ticking procedure using `SimulationSystem` inherited classes. Also ticker simplifies creation, when one system depends on another. You always can call `Resolve` to find system and get/wrtie info from/to it.
 
 With it, graph building being shortened into basically three lines `AddLine`, `TranslateLineH` and `Save` (If you use one line. If more - per line there will be one `AddLine` and probably one `TranslateLineH`).
+
+# Current state
+This library is abandoned, but may be revived soon.
