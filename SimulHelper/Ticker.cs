@@ -17,6 +17,8 @@ namespace SimulHelper
             Tick = 0;
             JsonWriter = new Utf8JsonWriter(File.OpenWrite(log));
             JsonWriter.WriteStartArray();
+
+            Logger.Init();
         }
 
         [Obsolete("Use UpdateWithDeps instead")]
@@ -68,6 +70,8 @@ namespace SimulHelper
             }
             JsonWriter.WriteEndArray();
             JsonWriter.Flush();
+
+            Logger.Finish();
         }
 
         [Obsolete("Use RegisterSystemDependency instead")]
@@ -79,6 +83,7 @@ namespace SimulHelper
         public void RegisterSystemDependency<System>(System sys) where System : SimulationSystem
         {
             SimSystemsDict.Add(sys.GetType(), sys);
+            SimSystems.Add(sys);
         }
 
         public System Resolve<System>() where System : SimulationSystem

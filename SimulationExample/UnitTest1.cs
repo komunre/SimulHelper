@@ -182,7 +182,7 @@ namespace SimulationExample
             public const float CarShape = 0.04f;
             public const float RubberFriction = 0.68f;
             public const float GravityAcceleration = 9.81f;
-            public LinearGraphHelper LinearGraph = new LinearGraphHelper(2000, 800);
+            public LinearGraphHelper LinearGraph = new LinearGraphHelper(1000, 800);
             private int _velocity;
             private int _acc;
             private int _airRes;
